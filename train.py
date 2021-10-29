@@ -70,7 +70,7 @@ def train(prepared_train_labels, train_images_folder, num_refinement_stages, bas
         batch_per_iter_idx = 0
         for batch_data in train_loader:
             if batch_per_iter_idx == 0:
-                optimizer.zero_grad()
+                optimizer.clear_grad()
 
             images = batch_data['image']
             keypoint_masks = batch_data['keypoint_mask']
