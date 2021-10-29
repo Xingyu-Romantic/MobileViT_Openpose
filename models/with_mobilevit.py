@@ -290,7 +290,16 @@ class PoseEstimationWithMobileViT(nn.Layer):
             self.refinement_stages.append(RefinementStage(num_channels + num_heatmaps + num_pafs, num_channels,
                                                           num_heatmaps, num_pafs))
 
+    def forward(self, x):
+        backbone_features = self.model(x)
+        backbone_features = self.cpm(backbone_features)
 
+        stages_output = self.initial_stage(backbone_features)
+        for refinement_stage in self.refinement_stages:
+            stages_output.extend(
+                refinement_stage(paddle.concat([backbone_features, stages_output[-2], stages_output[-1]], axis=1)))
+
+        return stages_output
 
 def mobilevit_xxs():
     dims=[60,80,96]
