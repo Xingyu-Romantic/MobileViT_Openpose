@@ -3,6 +3,7 @@ import cv2
 import os
 
 import paddle
+import paddle.distributed as dist
 from paddle import DataParallel
 import paddle.optimizer as optim
 from paddle.io import DataLoader
@@ -25,6 +26,8 @@ def train(prepared_train_labels, train_images_folder, num_refinement_stages, bas
           num_workers, checkpoint_path, weights_only, from_mobilenet, checkpoints_folder, log_after,
           val_labels, val_images_folder, val_output_name, checkpoint_after, val_after):
     #net = PoseEstimationWithMobileNet(num_refinement_stages)
+    dist.init_parallel_env()
+    
     net = PoseEstimationWithMobileViT(num_refinement_stages)
 
     stride = 8
@@ -129,7 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('--train-images-folder', type=str, required=True, help='path to COCO train images folder')
     parser.add_argument('--num-refinement-stages', type=int, default=1, help='number of refinement stages')
     parser.add_argument('--base-lr', type=float, default=4e-5, help='initial learning rate')
-    parser.add_argument('--batch-size', type=int, default=80, help='batch size')
+    parser.add_argument('--batch-size', type=int, default=64, help='batch size')
     parser.add_argument('--batches-per-iter', type=int, default=1, help='number of batches to accumulate gradient from')
     parser.add_argument('--num-workers', type=int, default=8, help='number of workers')
     parser.add_argument('--checkpoint-path', type=str, help='path to the checkpoint to continue training from')
