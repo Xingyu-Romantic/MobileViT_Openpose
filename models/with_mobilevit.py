@@ -281,7 +281,7 @@ class MobileViT(nn.Layer):
 class PoseEstimationWithMobileViT(nn.Layer):
     def __init__(self, num_refinement_stages=1, num_channels=128, num_heatmaps=19, num_pafs=38):
         super().__init__()
-        self.model = MobileViT(224, [60, 80, 96], [3, 32, 64, 128, 128, 256, 512, 512], num_classes=512)
+        self.model = MobileViT(224, [60, 80, 96], [32, 64, 128, 128, 256, 256, 512, 512], num_classes=512)
         self.cpm = Cpm(512, num_channels)
 
         self.initial_stage = InitialStage(num_channels, num_heatmaps, num_pafs)
