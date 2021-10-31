@@ -134,12 +134,14 @@ class Attention(nn.Layer):
         ) if project_out else nn.Identity()
 
     def forward(self,x):
+        B_, N, C = x.shape
         qkv=self.to_qkv(x).chunk(3,axis=-1)
         q,k,v=map(lambda t:rearrange(t,'b p n (h d) -> b p h n d',h=self.heads),qkv)
         dots=paddle.matmul(q,k.transpose(-1,-2))*self.scale
         attn=self.attend(dots)
         out=paddle.matmul(attn,v)
-        out=rearrange(out,'b p h n d -> b p n (h d)')
+        out = out.transpose((0, 2, 1, 3)).reshape((B_, N, C))
+        #out=rearrange(out,'b p h n d -> b p n (h d)')
         return self.to_out(out)
 
 
@@ -184,10 +186,13 @@ class MobileViTAttention(nn.Layer):
 
         ## Global Representation
         _,_,h,w=y.shape
+        y = y.numpy()
         y=rearrange(y,'bs dim (nh ph) (nw pw) -> bs (ph pw) (nh nw) dim',ph=self.ph,pw=self.pw) #bs,h,w,dim
+        y = paddle.to_tensor(y)
         y=self.trans(y)
+        y = y.numpy()
         y=rearrange(y,'bs (ph pw) (nh nw) dim -> bs dim (nh ph) (nw pw)',ph=self.ph,pw=self.pw,nh=h//self.ph,nw=w//self.pw) #bs,dim,h,w
-
+        y = paddle.to_tensor(y)
         ## Fusion
         y=self.conv3(y) #bs,dim,h,w
         y=paddle.concat([x,y],1) #bs,2*dim,h,w
