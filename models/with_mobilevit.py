@@ -134,9 +134,13 @@ class Attention(nn.Layer):
         ) if project_out else nn.Identity()
 
     def forward(self,x):
-        qkv=self.to_qkv(x).chunk(3,axis=-1)
-        q,k,v=map(lambda t:rearrange(t.numpy(),'b p n (h d) -> b p h n d',h=self.heads),qkv)
-        q, k, v = paddle.to_tensor(q), paddle.to_tensor(k), paddle.to_tensor(v)
+        N, C = x.shape[1:]
+        #qkv=self.to_qkv(x).chunk(3,axis=-1)
+        #q,k,v=map(lambda t:rearrange(t.numpy(),'b p n (h d) -> b p h n d',h=self.heads),qkv)
+        #q, k, v = paddle.to_tensor(q), paddle.to_tensor(k), paddle.to_tensor(v)
+        qkv = self.to_qkv(x).reshape((-1, N, 3, self.heads, C //
+                                   self.heads)).transpose((2, 0, 3, 1, 4))
+        q, k, v = qkv[0], qkv[1], qkv[2]
         dots=paddle.matmul(q,k.transpose((0, 1, 3, 2)))*self.scale
         attn=self.attend(dots)
         out=paddle.matmul(attn,v)
@@ -145,9 +149,6 @@ class Attention(nn.Layer):
         out=rearrange(out,'b p h n d -> b p n (h d)')
         out=paddle.to_tensor(out)
         return self.to_out(out)
-
-
-
 
 
 class Transformer(nn.Layer):
