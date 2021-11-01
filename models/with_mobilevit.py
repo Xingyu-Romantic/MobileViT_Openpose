@@ -141,7 +141,7 @@ class Attention(nn.Layer):
         #qkv = self.to_qkv(x).reshape((-1, N, 3, self.heads, C //
         #                           self.heads)).transpose((2, 0, 3, 1, 4))
         #q, k, v = qkv[0], qkv[1], qkv[2]
-        dots=paddle.matmul(q,k.numpy().transpose((0,1,2,4,3)))*self.scale
+        dots=paddle.matmul(q,k.transpose((0,1,2,4,3)))*self.scale
         attn=self.attend(dots)
         out=paddle.matmul(attn,v)
         #out = out.transpose((0, 2, 1, 3)).reshape((B_, N, C))
